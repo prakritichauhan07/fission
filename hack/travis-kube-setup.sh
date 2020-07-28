@@ -45,7 +45,7 @@ then
     then
         curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-arm64.tar.gz
         tar xzvf helm-*.tar.gz
-        mv linux-amd64/helm $K8SCLI_DIR/helm
+        mv linux-arm64/helm $K8SCLI_DIR/helm
     else
         curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz
         tar xzvf helm-*.tar.gz
