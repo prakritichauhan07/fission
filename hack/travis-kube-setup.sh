@@ -20,8 +20,8 @@ if [ ! -f $TOOL_DIR/staticcheck ] || (staticcheck -version | grep -v $STATICCHEC
 then
     if [ "${TRAVIS_CPU_ARCH}" == "arm64" ]
     then
-        curl -LO https://github.com/dominikh/go-tools/releases/download/${STATICCHECK_VERSION}/staticcheck_linux_amd64.tar.gz
-        tar xzvf staticcheck_linux_amd64.tar.gz
+        curl -LO https://github.com/dominikh/go-tools/releases/download/${STATICCHECK_VERSION}/staticcheck_linux_arm64.tar.gz
+        tar xzvf staticcheck_linux_arm64.tar.gz
         mv staticcheck/staticcheck $TOOL_DIR/staticcheck
     else
         curl -LO https://github.com/dominikh/go-tools/releases/download/${STATICCHECK_VERSION}/staticcheck_linux_amd64.tar.gz
@@ -43,7 +43,7 @@ if [ ! -f $K8SCLI_DIR/helm ] || (helm version --client | grep -v $HELM_VERSION)
 then
     if [ "${TRAVIS_CPU_ARCH}" == "arm64" ]
     then
-        curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz
+        curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-arm64.tar.gz
         tar xzvf helm-*.tar.gz
         mv linux-amd64/helm $K8SCLI_DIR/helm
     else
