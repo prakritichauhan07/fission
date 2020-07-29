@@ -61,8 +61,9 @@ func check() string {
 	if (runtime.GOARCH == "arm64") {
 		return "RELEASE.2020-07-24T22-43-05Z-arm64"
 	} else {
-		return "latest"
+		return latest
 	}
+}	
 	
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
 	options := &dockertest.RunOptions{
