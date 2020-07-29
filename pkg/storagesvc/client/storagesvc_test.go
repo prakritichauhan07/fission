@@ -58,7 +58,7 @@ func MakeTestFile(size int) *os.File {
 	return f
 }
 
-func check() string {
+func checkArch () string {
 	if runtime.GOARCH == "arm64" {
 		return "RELEASE.2020-07-24T22-43-05Z-arm64"
 	} else {
@@ -69,7 +69,7 @@ func check() string {
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
 	options := &dockertest.RunOptions{
 		Repository: "minio/minio",
-		Tag:	    check(),
+		Tag:	    checkArch(),
 		Cmd:        []string{"server", "/data"},
 		PortBindings: map[dc.Port][]dc.PortBinding{
 			"9000/tcp": {{HostIP: "", HostPort: "9000"}},
