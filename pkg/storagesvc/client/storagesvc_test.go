@@ -59,8 +59,8 @@ func MakeTestFile(size int) *os.File {
 
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
 	options := &dockertest.RunOptions{
-		Repository: "carlosedp/minio",
-		Tag:        "latest",
+		Repository: "minio/minio",
+		Tag:        "RELEASE.2020-07-24T22-43-05Z-arm64",
 		Cmd:        []string{"server", "/data"},
 		PortBindings: map[dc.Port][]dc.PortBinding{
 			"9000/tcp": {{HostIP: "", HostPort: "9000"}},
