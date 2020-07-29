@@ -64,8 +64,8 @@ func check() string {
 	} else {
 		return "latest"
 	}
-}	
-	
+}
+
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
 	options := &dockertest.RunOptions{
 		Repository: "minio/minio",
