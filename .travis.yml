@@ -41,7 +41,7 @@ before_script:
   - cd ${TRAVIS_BUILD_DIR}
   - go mod download
   - hack/verify-staticcheck.sh
-  - hack/verify-gofmt.sh
+  #- hack/verify-gofmt.sh
   - hack/verify-govet.sh
   - helm lint charts/fission-all/ charts/fission-core/
   - hack/runtests.sh
