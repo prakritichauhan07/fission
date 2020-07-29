@@ -60,7 +60,7 @@ func MakeTestFile(size int) *os.File {
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
 	options := &dockertest.RunOptions{
 		Repository: "minio/minio",
-		Tag: ((runtime.GOARCH == "arm64")?'RELEASE.2020-07-24T22-43-05Z-arm64':'latest'),
+		Tag: (runtime.GOARCH == "arm64") ? 'RELEASE.2020-07-24T22-43-05Z-arm64':'latest',
 		Cmd:        []string{"server", "/data"},
 		PortBindings: map[dc.Port][]dc.PortBinding{
 			"9000/tcp": {{HostIP: "", HostPort: "9000"}},
