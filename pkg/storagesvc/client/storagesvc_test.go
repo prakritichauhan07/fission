@@ -69,7 +69,7 @@ func check() string {
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
 	options := &dockertest.RunOptions{
 		Repository: "minio/minio",
-		Tag: 	    check(),
+		Tag:	    check(),
 		Cmd:        []string{"server", "/data"},
 		PortBindings: map[dc.Port][]dc.PortBinding{
 			"9000/tcp": {{HostIP: "", HostPort: "9000"}},
