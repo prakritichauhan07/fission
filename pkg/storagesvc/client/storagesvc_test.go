@@ -59,7 +59,7 @@ func MakeTestFile(size int) *os.File {
 }
 
 func check() string {
-	if (runtime.GOARCH == "arm64") {
+	if runtime.GOARCH == "arm64" {
 		return "RELEASE.2020-07-24T22-43-05Z-arm64"
 	} else {
 		return "latest"
