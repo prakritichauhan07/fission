@@ -17,244 +17,244 @@ limitations under the License.
 package client
 
 import (
-	"bytes"
-	"context"
-	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
-	"os"
-	"runtime"
-	"testing"
-	"time"
+        "bytes"
+        "context"
+        "fmt"
+        "io"
+        "io/ioutil"
+        "log"
+        "os"
+        "runtime"
+        "testing"
+        "time"
 
-	"github.com/dchest/uniuri"
-	"github.com/fission/fission/pkg/storagesvc"
-	"github.com/minio/minio-go"
-	"github.com/ory/dockertest"
-	dc "github.com/ory/dockertest/docker"
-	"go.uber.org/zap"
+        "github.com/dchest/uniuri"
+        "github.com/fission/fission/pkg/storagesvc"
+        "github.com/minio/minio-go"
+        "github.com/ory/dockertest"
+        dc "github.com/ory/dockertest/docker"
+        "go.uber.org/zap"
 )
 
 const (
-	minioAccessKeyID     = "minioadmin"
-	minioSecretAccessKey = "minioadmin"
-	minioRegion          = "ap-south-1"
+        minioAccessKeyID     = "minioadmin"
+        minioSecretAccessKey = "minioadmin"
+        minioRegion          = "ap-south-1"
 )
 
 func panicIf(err error) {
-	if err != nil {
-		log.Panicf("Error: %v", err)
-	}
+        if err != nil {
+                log.Panicf("Error: %v", err)
+        }
 }
 
 func MakeTestFile(size int) *os.File {
-	f, err := ioutil.TempFile("", "storagesvc_test_")
-	panicIf(err)
+        f, err := ioutil.TempFile("", "storagesvc_test_")
+        panicIf(err)
 
-	_, err = f.Write(bytes.Repeat([]byte("."), size))
-	panicIf(err)
+        _, err = f.Write(bytes.Repeat([]byte("."), size))
+        panicIf(err)
 
-	return f
+        return f
 }
 
-func checkArch () string {
-	if runtime.GOARCH == "arm64" {
-		return "RELEASE.2020-07-24T22-43-05Z-arm64"
-	} else {
-		return "latest"
-	}
+func checkArch() string {
+        if runtime.GOARCH == "arm64" {
+                return "RELEASE.2020-07-24T22-43-05Z-arm64"
+        } else {
+                return "latest"
+        }
 }
 
 func runMinioDockerContainer(pool *dockertest.Pool) *dockertest.Resource {
-	options := &dockertest.RunOptions{
-		Repository: "minio/minio",
-		Tag:	    checkArch(),
-		Cmd:        []string{"server", "/data"},
-		PortBindings: map[dc.Port][]dc.PortBinding{
-			"9000/tcp": {{HostIP: "", HostPort: "9000"}},
-		},
-	}
+        options := &dockertest.RunOptions{
+                Repository: "minio/minio",
+                Tag:        checkArch(),
+                Cmd:        []string{"server", "/data"},
+                PortBindings: map[dc.Port][]dc.PortBinding{
+                        "9000/tcp": {{HostIP: "", HostPort: "9000"}},
+                },
+        }
 
-	// pulls an image, creates a container based on it and runs it
-	resource, err := pool.RunWithOptions(options)
-	if err != nil {
-		log.Fatalf("Could not start resource: %s", err)
-	}
-	return resource
+        // pulls an image, creates a container based on it and runs it
+        resource, err := pool.RunWithOptions(options)
+        if err != nil {
+                log.Fatalf("Could not start resource: %s", err)
+        }
+        return resource
 }
 
 func startS3StorageService(endpoint, bucketName, subDir string) {
-	// testID := uniuri.NewLen(8)
-	port := 8081
+        // testID := uniuri.NewLen(8)
+        port := 8081
 
-	logger, err := zap.NewDevelopment()
-	panicIf(err)
+        logger, err := zap.NewDevelopment()
+        panicIf(err)
 
-	log.Println("starting storage svc")
-	os.Setenv("STORAGE_S3_ENDPOINT", endpoint)
-	os.Setenv("STORAGE_S3_BUCKET_NAME", bucketName)
-	os.Setenv("STORAGE_S3_SUB_DIR", subDir)
-	os.Setenv("STORAGE_S3_ACCESS_KEY_ID", minioAccessKeyID)
-	os.Setenv("STORAGE_S3_SECRET_ACCESS_KEY", minioSecretAccessKey)
-	os.Setenv("STORAGE_S3_REGION", minioRegion)
+        log.Println("starting storage svc")
+        os.Setenv("STORAGE_S3_ENDPOINT", endpoint)
+        os.Setenv("STORAGE_S3_BUCKET_NAME", bucketName)
+        os.Setenv("STORAGE_S3_SUB_DIR", subDir)
+        os.Setenv("STORAGE_S3_ACCESS_KEY_ID", minioAccessKeyID)
+        os.Setenv("STORAGE_S3_SECRET_ACCESS_KEY", minioSecretAccessKey)
+        os.Setenv("STORAGE_S3_REGION", minioRegion)
 
-	storage := storagesvc.NewS3Storage()
-	_ = storagesvc.Start(logger, storage, port)
+        storage := storagesvc.NewS3Storage()
+        _ = storagesvc.Start(logger, storage, port)
 
 }
 
 func TestS3StorageService(t *testing.T) {
-	fmt.Println("Test S3 Storage service")
-	var minioClient *minio.Client
+        fmt.Println("Test S3 Storage service")
+        var minioClient *minio.Client
 
-	// Start minio docker container
-	pool, err := dockertest.NewPool("")
-	resource := runMinioDockerContainer(pool)
+        // Start minio docker container
+        pool, err := dockertest.NewPool("")
+        resource := runMinioDockerContainer(pool)
 
-	endpoint := fmt.Sprintf("localhost:%s", resource.GetPort("9000/tcp"))
+        endpoint := fmt.Sprintf("localhost:%s", resource.GetPort("9000/tcp"))
 
-	if err := pool.Retry(func() error {
-		minioClient, err = minio.New(endpoint, minioAccessKeyID, minioSecretAccessKey, false)
-		if err != nil {
-			return err
-		}
+        if err := pool.Retry(func() error {
+                minioClient, err = minio.New(endpoint, minioAccessKeyID, minioSecretAccessKey, false)
+                if err != nil {
+                        return err
+                }
 
-		// This is to ensure container is up. Just getting minioClient
-		// isn't suffcient to assume container is up.
-		_, err = minioClient.ListBuckets()
-		if err != nil {
-			return err
-		}
+                // This is to ensure container is up. Just getting minioClient
+                // isn't suffcient to assume container is up.
+                _, err = minioClient.ListBuckets()
+                if err != nil {
+                        return err
+                }
 
-		return nil
-	}); err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
-	}
+                return nil
+        }); err != nil {
+                log.Fatalf("Could not connect to docker: %s", err)
+        }
 
-	defer pool.Purge(resource)
+        defer pool.Purge(resource)
 
-	// Start storagesvc
-	bucketName := "test-s3-service"
-	subDir := "x/y/z"
-	startS3StorageService(endpoint, bucketName, subDir)
+        // Start storagesvc
+        bucketName := "test-s3-service"
+        subDir := "x/y/z"
+        startS3StorageService(endpoint, bucketName, subDir)
 
-	time.Sleep(time.Second)
-	client := MakeClient(fmt.Sprintf("http://localhost:%v/", 8081))
+        time.Sleep(time.Second)
+        client := MakeClient(fmt.Sprintf("http://localhost:%v/", 8081))
 
-	// generate a test file
-	tmpfile := MakeTestFile(10 * 1024)
-	defer os.Remove(tmpfile.Name())
+        // generate a test file
+        tmpfile := MakeTestFile(10 * 1024)
+        defer os.Remove(tmpfile.Name())
 
-	// store it
-	metadata := make(map[string]string)
-	ctx := context.Background()
-	fileID, err := client.Upload(ctx, tmpfile.Name(), &metadata)
-	panicIf(err)
+        // store it
+        metadata := make(map[string]string)
+        ctx := context.Background()
+        fileID, err := client.Upload(ctx, tmpfile.Name(), &metadata)
+        panicIf(err)
 
-	time.Sleep(10 * time.Second)
+        time.Sleep(10 * time.Second)
 
-	// Retrive file trhough minioClient
-	reader, err := minioClient.GetObject(bucketName, fileID, minio.GetObjectOptions{})
-	panicIf(err)
-	defer reader.Close()
+        // Retrive file trhough minioClient
+        reader, err := minioClient.GetObject(bucketName, fileID, minio.GetObjectOptions{})
+        panicIf(err)
+        defer reader.Close()
 
-	retThroughMinio, err := ioutil.TempFile("", "storagesvc_verify_minio_")
-	panicIf(err)
-	defer os.Remove(retThroughMinio.Name())
+        retThroughMinio, err := ioutil.TempFile("", "storagesvc_verify_minio_")
+        panicIf(err)
+        defer os.Remove(retThroughMinio.Name())
 
-	stat, err := reader.Stat()
-	panicIf(err)
+        stat, err := reader.Stat()
+        panicIf(err)
 
-	if _, err := io.CopyN(retThroughMinio, reader, stat.Size); err != nil {
-		log.Fatalln(err)
-	}
+        if _, err := io.CopyN(retThroughMinio, reader, stat.Size); err != nil {
+                log.Fatalln(err)
+        }
 
-	// Retrieve file through API
-	retThroughAPI, err := ioutil.TempFile("", "storagesvc_verify_")
-	panicIf(err)
-	os.Remove(retThroughAPI.Name())
+        // Retrieve file through API
+        retThroughAPI, err := ioutil.TempFile("", "storagesvc_verify_")
+        panicIf(err)
+        os.Remove(retThroughAPI.Name())
 
-	err = client.Download(ctx, fileID, retThroughAPI.Name())
-	panicIf(err)
-	defer os.Remove(retThroughAPI.Name())
+        err = client.Download(ctx, fileID, retThroughAPI.Name())
+        panicIf(err)
+        defer os.Remove(retThroughAPI.Name())
 
-	// compare contents
-	contentsMinio, err := ioutil.ReadFile(retThroughMinio.Name())
-	panicIf(err)
-	contentsAPI, err := ioutil.ReadFile(retThroughAPI.Name())
-	panicIf(err)
-	if !bytes.Equal(contentsMinio, contentsAPI) {
-		log.Panic("Contents don't match")
-	}
+        // compare contents
+        contentsMinio, err := ioutil.ReadFile(retThroughMinio.Name())
+        panicIf(err)
+        contentsAPI, err := ioutil.ReadFile(retThroughAPI.Name())
+        panicIf(err)
+        if !bytes.Equal(contentsMinio, contentsAPI) {
+                log.Panic("Contents don't match")
+        }
 
-	// delete uploaded file
-	err = client.Delete(ctx, fileID)
-	panicIf(err)
+        // delete uploaded file
+        err = client.Delete(ctx, fileID)
+        panicIf(err)
 
-	// make sure download fails
-	err = client.Download(ctx, fileID, "xxx")
-	if err == nil {
-		log.Panic("Download succeeded but file isn't supposed to exist")
-	}
+        // make sure download fails
+        err = client.Download(ctx, fileID, "xxx")
+        if err == nil {
+                log.Panic("Download succeeded but file isn't supposed to exist")
+        }
 
 }
 
 func TestLocalStorageService(t *testing.T) {
-	testID := uniuri.NewLen(8)
-	port := 8080
+        testID := uniuri.NewLen(8)
+        port := 8080
 
-	logger, err := zap.NewDevelopment()
-	panicIf(err)
+        logger, err := zap.NewDevelopment()
+        panicIf(err)
 
-	log.Println("starting storage svc")
-	localPath := fmt.Sprintf("/tmp/%v", testID)
-	_ = os.Mkdir(localPath, os.ModePerm)
-	storage := storagesvc.NewLocalStorage(localPath)
-	_ = storagesvc.Start(logger, storage, port)
+        log.Println("starting storage svc")
+        localPath := fmt.Sprintf("/tmp/%v", testID)
+        _ = os.Mkdir(localPath, os.ModePerm)
+        storage := storagesvc.NewLocalStorage(localPath)
+        _ = storagesvc.Start(logger, storage, port)
 
-	time.Sleep(time.Second)
-	client := MakeClient(fmt.Sprintf("http://localhost:%v/", port))
+        time.Sleep(time.Second)
+        client := MakeClient(fmt.Sprintf("http://localhost:%v/", port))
 
-	// generate a test file
-	tmpfile := MakeTestFile(10 * 1024)
-	defer os.Remove(tmpfile.Name())
+        // generate a test file
+        tmpfile := MakeTestFile(10 * 1024)
+        defer os.Remove(tmpfile.Name())
 
-	// store it
-	metadata := make(map[string]string)
-	ctx := context.Background()
-	fileID, err := client.Upload(ctx, tmpfile.Name(), &metadata)
-	panicIf(err)
+        // store it
+        metadata := make(map[string]string)
+        ctx := context.Background()
+        fileID, err := client.Upload(ctx, tmpfile.Name(), &metadata)
+        panicIf(err)
 
-	// make a temp file for verification
-	retrievedfile, err := ioutil.TempFile("", "storagesvc_verify_")
-	panicIf(err)
-	os.Remove(retrievedfile.Name())
+        // make a temp file for verification
+        retrievedfile, err := ioutil.TempFile("", "storagesvc_verify_")
+        panicIf(err)
+        os.Remove(retrievedfile.Name())
 
-	// retrieve uploaded file
-	err = client.Download(ctx, fileID, retrievedfile.Name())
-	panicIf(err)
-	defer os.Remove(retrievedfile.Name())
+        // retrieve uploaded file
+        err = client.Download(ctx, fileID, retrievedfile.Name())
+        panicIf(err)
+        defer os.Remove(retrievedfile.Name())
 
-	// compare contents
-	contents1, err := ioutil.ReadFile(tmpfile.Name())
-	panicIf(err)
-	contents2, err := ioutil.ReadFile(retrievedfile.Name())
-	panicIf(err)
-	if !bytes.Equal(contents1, contents2) {
-		log.Panic("Contents don't match")
-	}
+        // compare contents
+        contents1, err := ioutil.ReadFile(tmpfile.Name())
+        panicIf(err)
+        contents2, err := ioutil.ReadFile(retrievedfile.Name())
+        panicIf(err)
+        if !bytes.Equal(contents1, contents2) {
+                log.Panic("Contents don't match")
+        }
 
-	// delete uploaded file
-	err = client.Delete(ctx, fileID)
-	panicIf(err)
+        // delete uploaded file
+        err = client.Delete(ctx, fileID)
+        panicIf(err)
 
-	// make sure download fails
-	err = client.Download(ctx, fileID, "xxx")
-	if err == nil {
-		log.Panic("Download succeeded but file isn't supposed to exist")
-	}
+        // make sure download fails
+        err = client.Download(ctx, fileID, "xxx")
+        if err == nil {
+                log.Panic("Download succeeded but file isn't supposed to exist")
+        }
 
-	// // cleanup /tmp
-	os.RemoveAll(fmt.Sprintf("/tmp/%v", testID))
+        // // cleanup /tmp
+        os.RemoveAll(fmt.Sprintf("/tmp/%v", testID))
 }
