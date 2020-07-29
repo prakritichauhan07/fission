@@ -40,7 +40,7 @@ install:
 before_script:
   - cd ${TRAVIS_BUILD_DIR}
   - go mod download
-  - gofmt -w ./pkg/storagesvc/client/storagesvc_test.go
+  #- gofmt -w ./pkg/storagesvc/client/storagesvc_test.go
   - hack/verify-staticcheck.sh
   - hack/verify-gofmt.sh
   - hack/verify-govet.sh
