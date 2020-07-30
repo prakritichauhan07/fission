@@ -17,18 +17,18 @@ fi
 #STATICCHECK_VERSION=2019.2.3
 #STATICCHECK_VERSION=2020.1.2
 STATICCHECK_VERSION=2020.1.4
+
+if [ "$(uname -m)" == "aarch64" ]; then
+      arch = "arm64"
+else
+      arch = "amd64"
+fi
+
 if [ ! -f $TOOL_DIR/staticcheck ] || (staticcheck -version | grep -v $STATICCHECK_VERSION)
 then
-    if [ "${TRAVIS_CPU_ARCH}" == "arm64" ]
-    then
-        curl -LO https://github.com/dominikh/go-tools/releases/download/${STATICCHECK_VERSION}/staticcheck_linux_arm64.tar.gz
-        tar xzvf staticcheck_linux_arm64.tar.gz
-        mv staticcheck/staticcheck $TOOL_DIR/staticcheck
-    else
-        curl -LO https://github.com/dominikh/go-tools/releases/download/${STATICCHECK_VERSION}/staticcheck_linux_amd64.tar.gz
-        tar xzvf staticcheck_linux_amd64.tar.gz
-        mv staticcheck/staticcheck $TOOL_DIR/staticcheck
-    fi
+    curl -LO https://github.com/dominikh/go-tools/releases/download/${STATICCHECK_VERSION}/staticcheck_linux_${arch}.tar.gz
+    tar xzvf staticcheck_linux_${arch}.tar.gz
+    mv staticcheck/staticcheck $TOOL_DIR/staticcheck
 fi
 
 K8SCLI_DIR=$HOME/k8scli
@@ -42,16 +42,9 @@ fi
 HELM_VERSION=2.14.0
 if [ ! -f $K8SCLI_DIR/helm ] || (helm version --client | grep -v $HELM_VERSION)
 then
-    if [ "${TRAVIS_CPU_ARCH}" == "arm64" ]
-    then
-        curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-arm64.tar.gz
-        tar xzvf helm-*.tar.gz
-        mv linux-arm64/helm $K8SCLI_DIR/helm
-    else
-        curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz
-        tar xzvf helm-*.tar.gz
-        mv linux-amd64/helm $K8SCLI_DIR/helm
-    fi
+    curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-${arch}.tar.gz
+    tar xzvf helm-*.tar.gz
+    mv linux-${arch}/helm $K8SCLI_DIR/helm
 fi
 
 # If we don't have gcloud credentials, bail out of these tests.
@@ -64,7 +57,7 @@ fi
 # Get kubectl
 if [ ! -f $K8SCLI_DIR/kubectl ]
 then
-   curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+   curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/${arch}/kubectl
    chmod +x ./kubectl
    mv kubectl $K8SCLI_DIR/kubectl
 fi
