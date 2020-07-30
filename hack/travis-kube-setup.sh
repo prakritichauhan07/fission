@@ -15,7 +15,8 @@ fi
 
 # Get staticcheck
 #STATICCHECK_VERSION=2019.2.3
-STATICCHECK_VERSION=2020.1.2
+#STATICCHECK_VERSION=2020.1.2
+STATICCHECK_VERSION=2020.1.4
 if [ ! -f $TOOL_DIR/staticcheck ] || (staticcheck -version | grep -v $STATICCHECK_VERSION)
 then
     if [ "${TRAVIS_CPU_ARCH}" == "arm64" ]
