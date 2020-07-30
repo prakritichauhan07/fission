@@ -19,9 +19,9 @@ fi
 STATICCHECK_VERSION=2020.1.4
 
 if [ "$(uname -m)" == "aarch64" ]; then
-      arch = "arm64"
+    arch="arm64"
 else
-      arch = "amd64"
+    arch="amd64"
 fi
 
 if [ ! -f $TOOL_DIR/staticcheck ] || (staticcheck -version | grep -v $STATICCHECK_VERSION)
